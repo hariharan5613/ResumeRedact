@@ -1,37 +1,53 @@
 """
-Resume Anonymizer — Flask Backend
-===================================
-Exact port of the Streamlit reference implementation.
-Replaces: fitz (PyMuPDF) → pdfplumber + pypdf + reportlab
-All logic preserved 1:1: phone regex, email regex, contact symbols,
-section detection, background color sampling, watermark, name/role extraction.
+Resume Anonymizer — Flask Backend (Production Ready)
+Logic: 100% unchanged
 """
 
+# ─────────────────────────────────────────────
+# ENV LOAD
+# ─────────────────────────────────────────────
+from dotenv import load_dotenv
+load_dotenv()
+
+# ─────────────────────────────────────────────
+# IMPORTS
+# ─────────────────────────────────────────────
 from flask import Flask, request, jsonify, send_file, make_response
 import io, os, re, base64, zipfile, tempfile, time, traceback
 from collections import Counter
 
-# ── Pillow ─────────────────────────────────────────────────────
 from PIL import Image
-
-# ── PDF (read) ─────────────────────────────────────────────────
 import pdfplumber
 from pypdf import PdfReader, PdfWriter
 
-# ── PDF (write / watermark) ─────────────────────────────────────
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas as rl_canvas
 from reportlab.lib.utils import ImageReader
 
-# ── DOCX ────────────────────────────────────────────────────────
 from docx import Document
 
+# ─────────────────────────────────────────────
+# CONFIG FROM .env
+# ─────────────────────────────────────────────
 app = Flask(__name__)
 
+app.config['MAX_CONTENT_LENGTH'] = int(os.getenv("MAX_CONTENT_LENGTH", 52428800))
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
+
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", 5000))
+DEBUG = os.getenv("DEBUG", "False") == "True"
+
+LOGO_PATH = os.getenv("LOGO_PATH", "APH_logo-02.png")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*")
+
+# ─────────────────────────────────────────────
+# CORS (UPDATED)
+# ─────────────────────────────────────────────
 @app.after_request
 def add_cors(response):
-    response.headers["Access-Control-Allow-Origin"]  = "*"
+    response.headers["Access-Control-Allow-Origin"]  = ALLOWED_ORIGINS
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
     return response
@@ -795,7 +811,12 @@ def logo_preview():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("  ResumeGuard Pro — Flask Server")
-    print("  http://127.0.0.1:5000")
+    print("  ResumeRedact2")
+    print(f"  Running on {HOST}:{PORT}")
     print("=" * 60)
-    app.run(debug=False, port=5000)
+
+    app.run(
+        host=HOST,
+        port=PORT,
+        debug=DEBUG
+    )
