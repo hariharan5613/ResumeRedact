@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APH ResumeGuard · Anonymizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ════════════════════════════════════════════════
+   DESIGN TOKENS  — editorial dark-gold system
+════════════════════════════════════════════════ */
+:root {
+  --void:       #09090d;
+  --deep:       #111118;
+  --surface:    #16161f;
+  --raise:      #1e1e2a;
+  --lift:       #252533;
+  --rim:        #2e2e3f;
+  --mist:       #3d3d52;
+  --text:       #e8e6f0;
+  --text-2:     #9b99b4;
+  --text-3:     #5e5c78;
+  --gold:       #c9a84c;
+  --gold-h:     #dfc06a;
+  --gold-dim:   #8a6d28;
+  --gold-glow:  rgba(201,168,76,.18);
+  --crimson:    #b84040;
+  --crimson-bg: rgba(184,64,64,.12);
+  --emerald:    #3a9b6e;
+  --emerald-bg: rgba(58,155,110,.12);
+  --sky:        #4a8fc4;
+  --sky-bg:     rgba(74,143,196,.1);
+  --font-disp:  'Cormorant Garamond', Georgia, serif;
+  --font-body:  'Outfit', sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
+  --r:          10px;
+  --r-sm:       6px;
+  --shadow:     0 2px 24px rgba(0,0,0,.4), 0 1px 4px rgba(0,0,0,.3);
+  --shadow-lg:  0 8px 48px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.4);
+  --glow-gold:  0 0 30px rgba(201,168,76,.12), 0 0 2px rgba(201,168,76,.2);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 15px; }
+body {
+  font-family: var(--font-body);
+  background: var(--void);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ──────────────────────────────────────────────
+   AMBIENT BACKGROUND GRID
+────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(201,168,76,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,168,76,.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+body::after {
+  content: '';
+  position: fixed; top: -30vh; right: -20vw; z-index: 0; pointer-events: none;
+  width: 80vw; height: 80vw;
+  background: radial-gradient(circle, rgba(201,168,76,.06) 0%, transparent 65%);
+}
+.page { position: relative; z-index: 1; }
+
+/* ──────────────────────────────────────────────
+   HEADER / HERO
+────────────────────────────────────────────── */
+.hero {
+  border-bottom: 1px solid var(--rim);
+  padding: 0 40px;
+  background: linear-gradient(180deg, rgba(201,168,76,.05) 0%, transparent 100%);
+}
+.hero-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 40px; padding: 48px 0 44px;
+  flex-wrap: wrap;
+}
+.hero-brand { display: flex; align-items: center; gap: 16px; }
+.brand-mark {
+  width: 52px; height: 52px;
+  border: 1.5px solid var(--gold);
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-disp); font-size: 1.3rem; font-weight: 700;
+  color: var(--gold);
+  background: var(--gold-glow);
+  box-shadow: var(--glow-gold);
+  letter-spacing: -1px;
+}
+
+.brand-title {
+  font-family: var(--font-disp);
+  font-size: 1.55rem; font-weight: 700; color: var(--text);
+  letter-spacing: -.3px; line-height: 1;
+}
+.brand-title em { color: var(--gold); font-style: normal; }
+.brand-sub { font-size: .72rem; color: var(--text-3); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+
+.hero-right { text-align: right; }
+.hero-headline {
+  font-family: var(--font-disp); font-style: italic;
+  font-size: clamp(1.6rem, 3vw, 2.5rem); font-weight: 400; color: var(--text-2);
+  line-height: 1.15;
+}
+.hero-headline strong { color: var(--text); font-style: normal; font-weight: 600; }
+.hero-tags {
+  display: flex; gap: 8px; margin-top: 12px;
+  justify-content: flex-end; flex-wrap: wrap;
+}
+.hero-tag {
+  font-size: .68rem; font-weight: 500; letter-spacing: .8px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px;
+  border: 1px solid var(--rim); color: var(--text-3);
+}
+.hero-tag.gold { border-color: var(--gold-dim); color: var(--gold); background: var(--gold-glow); }
+
+/* ──────────────────────────────────────────────
+   STATUS BANNER
+────────────────────────────────────────────── */
+.server-banner {
+  margin: 0; padding: 10px 40px;
+  font-size: .75rem; font-weight: 500;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--rim);
+}
+.server-banner.ok   { background: var(--emerald-bg); color: var(--emerald); }
+.server-banner.warn { background: var(--crimson-bg); color: var(--crimson); }
+.server-banner.info { background: var(--sky-bg);     color: var(--sky); }
+.banner-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+/* ──────────────────────────────────────────────
+   MAIN LAYOUT
+────────────────────────────────────────────── */
+.workspace {
+  max-width: 1200px; margin: 0 auto;
+  padding: 36px 40px 80px;
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 28px; align-items: start;
+}
+@media (max-width: 900px) {
+  .workspace { grid-template-columns: 1fr; padding: 24px 20px 60px; }
+}
+
+/* ──────────────────────────────────────────────
+   PANEL
+────────────────────────────────────────────── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: sticky; top: 20px;
+}
+.panel-cap {
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid var(--rim);
+  background: var(--deep);
+}
+.panel-cap h2 {
+  font-family: var(--font-disp); font-size: 1.1rem; font-weight: 600; color: var(--text);
+}
+.panel-cap p { font-size: .75rem; color: var(--text-3); margin-top: 2px; }
+.panel-body { padding: 24px; }
+
+/* ──────────────────────────────────────────────
+   FIELDS
+────────────────────────────────────────────── */
+.field { margin-bottom: 20px; }
+.field-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .7rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--text-3); margin-bottom: 8px;
+}
+.field-label .fl-icon { font-size: .85rem; }
+
+/* Upload zone */
+.drop-zone {
+  border: 1.5px dashed var(--mist);
+  border-radius: var(--r);
+  padding: 20px 16px 18px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--deep);
+  position: relative;
+  overflow: hidden;
+}
+.drop-zone::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, var(--gold-glow), transparent 70%);
+  opacity: 0; transition: opacity .3s;
+}
+.drop-zone:hover::before, .drop-zone.over::before { opacity: 1; }
+.drop-zone:hover, .drop-zone.over { border-color: var(--gold-dim); }
+.drop-zone input {
+  position: absolute; inset: 0; opacity: 0;
+  cursor: pointer; width: 100%; height: 100%;
+}
+.dz-icon { font-size: 2rem; margin-bottom: 6px; display: block; }
+.dz-title { font-size: .85rem; font-weight: 600; color: var(--text-2); }
+.dz-sub   { font-size: .72rem; color: var(--text-3); margin-top: 2px; }
+.dz-badge {
+  margin-top: 9px; display: inline-flex; align-items: center; gap: 5px;
+  background: var(--emerald-bg); border: 1px solid var(--emerald);
+  color: var(--emerald); font-size: .68rem; font-weight: 600;
+  font-family: var(--font-mono); padding: 3px 10px; border-radius: 20px;
+  display: none;
+}
+
+/* Multi-file list */
+.file-queue {
+  margin-top: 10px; display: none;
+  background: var(--deep); border: 1px solid var(--rim);
+  border-radius: var(--r-sm); overflow: hidden; max-height: 160px; overflow-y: auto;
+}
+.fq-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 12px; border-bottom: 1px solid var(--rim);
+  font-size: .75rem; gap: 10px;
+}
+.fq-item:last-child { border-bottom: none; }
+.fq-name { color: var(--text-2); font-family: var(--font-mono); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fq-type { font-size: .65rem; padding: 1px 7px; border-radius: 10px; font-weight: 600; }
+.fq-type.pdf  { background: rgba(74,143,196,.15); color: var(--sky); border: 1px solid rgba(74,143,196,.25); }
+.fq-type.docx { background: rgba(58,155,110,.12); color: var(--emerald); border: 1px solid rgba(58,155,110,.2); }
+.fq-rm { cursor: pointer; color: var(--text-3); transition: color .15s; font-size: .9rem; flex-shrink: 0; }
+.fq-rm:hover { color: var(--crimson); }
+
+/* Logo status */
+.logo-status {
+  display: none; align-items: center; gap: 10px; margin-top: 10px;
+  padding: 9px 12px; background: var(--deep); border: 1px solid var(--gold-dim);
+  border-radius: var(--r-sm);
+}
+.logo-status img { max-height: 36px; max-width: 100px; object-fit: contain; filter: brightness(1.1); }
+.logo-status span { font-size: .74rem; color: var(--gold); font-weight: 500; }
+
+/* ──────────────────────────────────────────────
+   DIVIDER
+────────────────────────────────────────────── */
+.divider {
+  height: 1px; background: var(--rim); margin: 20px 0;
+}
+
+/* ──────────────────────────────────────────────
+   PROCESS BUTTON
+────────────────────────────────────────────── */
+.btn-process {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  color: var(--void);
+  border: none; border-radius: var(--r);
+  font-family: var(--font-body); font-size: .95rem; font-weight: 700;
+  cursor: pointer; letter-spacing: .3px;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  transition: all .2s; box-shadow: 0 4px 20px rgba(201,168,76,.25);
+}
+.btn-process:hover { background: linear-gradient(135deg, var(--gold), var(--gold-h)); box-shadow: 0 6px 28px rgba(201,168,76,.4); transform: translateY(-1px); }
+.btn-process:active { transform: none; }
+.btn-process:disabled { background: var(--mist); color: var(--text-3); box-shadow: none; cursor: not-allowed; transform: none; }
+
+.spin {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(0,0,0,.25);
+  border-top-color: var(--void);
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Progress steps */
+.steps { display: none; margin-top: 18px; }
+.step {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; font-size: .78rem; color: var(--text-3);
+  transition: color .3s;
+}
+.step.active { color: var(--gold); }
+.step.done   { color: var(--emerald); }
+.step.error  { color: var(--crimson); }
+.step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--rim); display: flex; align-items: center; justify-content: center;
+  font-size: .62rem; font-weight: 700; flex-shrink: 0;
+  color: var(--text-3); font-family: var(--font-mono);
+  transition: all .25s;
+}
+.step.active .step-num { background: var(--gold-dim); color: var(--void); }
+.step.done   .step-num { background: var(--emerald); color: white; }
+.step.error  .step-num { background: var(--crimson); color: white; }
+
+/* Status toast */
+.toast {
+  display: none; padding: 10px 14px; border-radius: var(--r-sm);
+  font-size: .78rem; font-weight: 500; margin-top: 14px; line-height: 1.5;
+}
+.toast.info    { background: var(--sky-bg);     color: var(--sky);     border: 1px solid rgba(74,143,196,.3); display: block; }
+.toast.success { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(58,155,110,.3); display: block; }
+.toast.error   { background: var(--crimson-bg); color: var(--crimson); border: 1px solid rgba(184,64,64,.3); display: block; }
+
+/* ──────────────────────────────────────────────
+   RIGHT PANEL — RESULTS
+────────────────────────────────────────────── */
+.output { display: none; animation: fadeUp .4s ease forwards; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform:none; } }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 90px 40px; text-align: center;
+  background: var(--surface); border: 1px solid var(--rim);
+  border-radius: var(--r); box-shadow: var(--shadow);
+}
+.es-icon { font-size: 3.5rem; margin-bottom: 14px; opacity: .35; filter: grayscale(.5); }
+.es-title { font-family: var(--font-disp); font-size: 1.3rem; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
+.es-sub   { font-size: .82rem; color: var(--text-3); max-width: 300px; line-height: 1.7; }
+
+/* Summary strip */
+.summary-strip {
+  background: var(--surface); border: 1px solid var(--rim);
+  border-radius: var(--r); overflow: hidden;
+  box-shadow: var(--shadow); margin-bottom: 20px;
+}
+.strip-hdr {
+  padding: 13px 20px; background: var(--deep);
+  border-bottom: 1px solid var(--rim);
+  display: flex; align-items: center; gap: 10px;
+}
+.strip-hdr h3 { font-family: var(--font-disp); font-size: .95rem; font-weight: 600; color: var(--text); }
+.strip-badge {
+  padding: 2px 9px; border-radius: 20px; font-size: .62rem;
+  font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+}
+.sb-gold    { background: var(--gold-glow);    border: 1px solid var(--gold-dim);    color: var(--gold); }
+.sb-green   { background: var(--emerald-bg);   border: 1px solid rgba(58,155,110,.3); color: var(--emerald); }
+.sb-red     { background: var(--crimson-bg);   border: 1px solid rgba(184,64,64,.3);  color: var(--crimson); }
+.strip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1px; background: var(--rim);
+}
+.strip-cell {
+  background: var(--surface); padding: 12px 15px;
+}
+.sc-label { font-size: .6rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-3); font-weight: 600; margin-bottom: 4px; }
+.sc-val   { font-size: .88rem; font-weight: 600; color: var(--text); }
+.sc-val.gold    { color: var(--gold); }
+.sc-val.green   { color: var(--emerald); }
+.sc-val.red     { color: var(--crimson); }
+.sc-val.mono    { font-family: var(--font-mono); font-size: .78rem; }
+
+/* Redacted items list */
+.redacted-list {
+  padding: 12px 20px; border-top: 1px solid var(--rim);
+  background: var(--crimson-bg); display: none;
+}
+.rl-title { font-size: .68rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--crimson); margin-bottom: 8px; }
+.rl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rl-chip {
+  background: var(--deep); border: 1px solid rgba(184,64,64,.3);
+  color: var(--crimson); font-size: .7rem;
+  font-family: var(--font-mono);
+  padding: 3px 10px; border-radius: 5px;
+}
+
+/* ──────────────────────────────────────────────
+   RESULT CARDS
+────────────────────────────────────────────── */
+.results-section { margin-top: 20px; }
+.results-label {
+  font-size: .68rem; text-transform: uppercase; letter-spacing: 2px;
+  color: var(--text-3); font-weight: 600; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.results-label::after { content: ''; flex: 1; height: 1px; background: var(--rim); }
+
+.result-cards { display: flex; flex-direction: column; gap: 12px; }
+
+.r-card {
+  background: var(--surface); border: 1px solid var(--rim);
+  border-radius: var(--r); overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: border-color .2s;
+}
+.r-card:hover { border-color: var(--gold-dim); }
+
+.r-card-hdr {
+  padding: 14px 18px; background: var(--deep);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border-bottom: 1px solid var(--rim);
+}
+.r-card-left { flex: 1; min-width: 0; }
+.r-card-name {
+  font-family: var(--font-disp); font-size: 1.15rem; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.r-card-role { font-size: .78rem; color: var(--gold); margin-top: 1px; }
+.r-card-file { font-size: .68rem; color: var(--text-3); font-family: var(--font-mono); margin-top: 3px; }
+
+.r-card-meta {
+  padding: 10px 18px; display: flex; gap: 20px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--rim);
+}
+.r-meta-item { font-size: .72rem; color: var(--text-3); display: flex; align-items: center; gap: 5px; }
+.r-meta-item .ico { font-size: .85rem; }
+.r-meta-item .val { color: var(--text-2); font-weight: 500; }
+.r-meta-item .val.red  { color: var(--crimson); }
+.r-meta-item .val.green{ color: var(--emerald); }
+
+.r-card-body { padding: 14px 18px; }
+.r-redacted-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.r-chip {
+  font-size: .67rem; font-family: var(--font-mono);
+  padding: 2px 9px; border-radius: 4px;
+  border: 1px solid rgba(184,64,64,.3);
+  background: var(--crimson-bg); color: var(--crimson);
+}
+
+.r-card-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+.btn-dl {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--r-sm);
+  font-family: var(--font-body); font-size: .8rem; font-weight: 600;
+  cursor: pointer; transition: all .18s; border: none;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  color: var(--void);
+}
+.btn-dl:hover { background: linear-gradient(135deg, var(--gold), var(--gold-h)); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(201,168,76,.3); }
+.btn-sec {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: var(--r-sm);
+  font-family: var(--font-body); font-size: .8rem; font-weight: 500;
+  cursor: pointer; transition: all .18s;
+  background: transparent; color: var(--text-2);
+  border: 1px solid var(--rim);
+}
+.btn-sec:hover { border-color: var(--mist); background: var(--raise); }
+
+/* Error card */
+.r-card.error-card { border-color: rgba(184,64,64,.3); }
+.r-card.error-card .r-card-hdr { background: var(--crimson-bg); }
+.err-msg { font-size: .78rem; color: var(--crimson); font-family: var(--font-mono); padding: 10px 18px; }
+
+/* Bulk download */
+.bulk-section {
+  display: none; margin-top: 20px;
+}
+.bulk-inner {
+  background: var(--surface); border: 1px solid var(--rim);
+  border-radius: var(--r); padding: 18px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  box-shadow: var(--shadow);
+}
+.bulk-info h4 { font-family: var(--font-disp); font-size: 1rem; font-weight: 600; color: var(--text); }
+.bulk-info p  { font-size: .75rem; color: var(--text-3); margin-top: 2px; }
+.bulk-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ──────────────────────────────────────────────
+   FOOTER
+────────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--rim); padding: 20px 40px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .72rem; color: var(--text-3); flex-wrap: wrap; gap: 10px;
+  max-width: 1200px; margin: 0 auto;
+}
+.footer-tech { display: flex; gap: 12px; flex-wrap: wrap; }
+.ft-badge {
+  display: flex; align-items: center; gap: 5px;
+  color: var(--text-3); font-size: .68rem;
+}
+.ft-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+
+/* ──────────────────────────────────────────────
+   SCROLLBAR
+────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--deep); }
+::-webkit-scrollbar-thumb { background: var(--rim); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--mist); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══ HERO ═══ -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-brand">
+      <div class="brand-mark">AP</div>
+      <div class="brand-text">
+        <div class="brand-title">APH <em>Resume</em>Guard</div>
+        <div class="brand-sub">Contact Anonymization System</div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-headline">
+        <strong>Redact. Watermark.</strong><br>
+        <em>Deliver with confidence.</em>
+      </div>
+      <div class="hero-tags">
+        <span class="hero-tag gold">NLP Name Extraction</span>
+        <span class="hero-tag">3-Pass Phone Regex</span>
+        <span class="hero-tag">40+ Phone Patterns</span>
+        <span class="hero-tag">Logo Watermark</span>
+        <span class="hero-tag">PDF + DOCX</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Server status banner -->
+<div class="server-banner info" id="serverBanner">
+  <span class="banner-dot"></span>
+  <span id="bannerText">Connecting to Flask backend…</span>
+</div>
+
+<!-- ═══ WORKSPACE ═══ -->
+<div class="workspace">
+
+  <!-- ── LEFT: CONTROL PANEL ── -->
+  <aside class="panel">
+    <div class="panel-cap">
+      <h2>Process Resumes</h2>
+      <p>Upload PDF or DOCX files — all logic runs server-side</p>
+    </div>
+    <div class="panel-body">
+
+      <!-- Logo status -->
+      <div class="field">
+        <div class="field-label"><span class="fl-icon">🏢</span> Company Logo</div>
+        <div class="logo-status" id="logoStatus">
+          <img id="logoPreviewImg" src="" alt="Logo">
+          <span id="logoStatusText">Logo ready</span>
+        </div>
+        <div id="noLogoWarn" style="font-size:.75rem;color:var(--text-3);padding:9px 12px;background:var(--deep);border:1px solid var(--rim);border-radius:var(--r-sm);">
+          ⚠ Place <code style="font-family:var(--font-mono);color:var(--gold);">APH_logo-02.png</code> in the app folder to enable watermarking.
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Resume upload -->
+      <div class="field">
+        <div class="field-label"><span class="fl-icon">📂</span> Upload Resumes</div>
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept=".pdf,.docx" multiple
+                 onchange="handleFiles(this.files)">
+          <span class="dz-icon">⬆</span>
+          <div class="dz-title">Drop files here or click to browse</div>
+          <div class="dz-sub">PDF & DOCX supported · Multiple files allowed</div>
+          <div class="dz-badge" id="dzBadge">✓ <span id="dzCount">0</span> files selected</div>
+        </div>
+
+        <!-- File queue -->
+        <div class="file-queue" id="fileQueue"></div>
+      </div>
+
+      <!-- Process button -->
+      <button class="btn-process" id="processBtn" onclick="processAll()" disabled>
+        <div class="spin" id="spin"></div>
+        <span id="btnLabel">🚀 Anonymize All Resumes</span>
+      </button>
+
+      <!-- Toast -->
+      <div class="toast" id="toast"></div>
+
+      <!-- Steps -->
+      <div class="steps" id="stepsBox">
+        <div class="step" id="st1"><div class="step-num">1</div><span>Uploading files to server</span></div>
+        <div class="step" id="st2"><div class="step-num">2</div><span>Extracting name &amp; role (NLP)</span></div>
+        <div class="step" id="st3"><div class="step-num">3</div><span>3-pass contact redaction</span></div>
+        <div class="step" id="st4"><div class="step-num">4</div><span>Stamping transparent logo watermark</span></div>
+        <div class="step" id="st5"><div class="step-num">5</div><span>Building download package</span></div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ── RIGHT: OUTPUT ── -->
+  <main>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <div class="es-icon">🛡️</div>
+      <div class="es-title">Ready to Anonymize</div>
+      <p class="es-sub">Upload one or more resumes on the left. The system will strip all contact details and output APH-branded PDFs named <em>APH_Role_Name.pdf</em></p>
+    </div>
+
+    <!-- Results -->
+    <div class="output" id="output">
+
+      <!-- Summary strip -->
+      <div class="summary-strip" id="summaryStrip">
+        <div class="strip-hdr">
+          <h3>Batch Summary</h3>
+          <span class="strip-badge sb-gold" id="batchBadge">0 files</span>
+          <span class="strip-badge sb-red"  id="redactBadge" style="margin-left:auto;">0 redacted</span>
+        </div>
+        <div class="strip-grid" id="summaryGrid"></div>
+        <div class="redacted-list" id="allRedactedList">
+          <div class="rl-title">All Redacted Items</div>
+          <div class="rl-chips" id="allRedactedChips"></div>
+        </div>
+      </div>
+
+      <!-- Per-file cards -->
+      <div class="results-section">
+        <div class="results-label" id="resultsLabel">Results</div>
+        <div class="result-cards" id="resultCards"></div>
+      </div>
+
+      <!-- Bulk download -->
+      <div class="bulk-section" id="bulkSection">
+        <div class="bulk-inner">
+          <div class="bulk-info">
+            <h4>📦 Bulk Download</h4>
+            <p id="bulkDesc">All anonymized files ready</p>
+          </div>
+          <div class="bulk-btns" id="bulkBtns"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div><!-- /workspace -->
+
+<!-- Footer -->
+<footer class="footer">
+  <span>APH ResumeGuard Pro · Contact Anonymization System</span>
+  <div class="footer-tech">
+    <div class="ft-badge"><span class="ft-dot"></span> Flask + Python</div>
+    <div class="ft-badge"><span class="ft-dot"></span> pdfplumber + pypdf</div>
+    <div class="ft-badge"><span class="ft-dot"></span> ReportLab PDF Engine</div>
+    <div class="ft-badge"><span class="ft-dot"></span> PIL Watermark</div>
+  </div>
+</footer>
+
+</div><!-- /page -->
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════
+const API = 'http://127.0.0.1:5000';
+
+let selectedFiles  = [];   // File objects
+let lastResults    = [];   // API result objects
+
+// ═══════════════════════════════════════════════════
+//  SERVER HEALTH CHECK
+// ═══════════════════════════════════════════════════
+async function checkServer() {
+  try {
+    const r = await fetch(`${API}/api/logo_preview`, { method: 'GET' });
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    setBanner('ok', '✓ Flask server connected — ready to process');
+
+    if (d.has_logo) {
+      document.getElementById('logoPreviewImg').src = 'data:image/png;base64,' + d.b64;
+      document.getElementById('logoStatus').style.display = 'flex';
+      document.getElementById('logoStatusText').textContent = `Logo loaded · ${d.w}×${d.h}px`;
+      document.getElementById('noLogoWarn').style.display = 'none';
+    }
+  } catch {
+    setBanner('warn', '⚠ Flask server not running — start with: python app.py');
+  }
+}
+
+function setBanner(type, msg) {
+  const el = document.getElementById('serverBanner');
+  el.className = 'server-banner ' + type;
+  document.getElementById('bannerText').textContent = msg;
+}
+
+// ═══════════════════════════════════════════════════
+//  FILE HANDLING
+// ═══════════════════════════════════════════════════
+function handleFiles(fileList) {
+  for (const f of fileList) {
+    if (!selectedFiles.find(x => x.name === f.name && x.size === f.size)) {
+      selectedFiles.push(f);
+    }
+  }
+  renderQueue();
+}
+
+function removeFile(idx) {
+  selectedFiles.splice(idx, 1);
+  renderQueue();
+}
+
+function renderQueue() {
+  const qEl  = document.getElementById('fileQueue');
+  const badge = document.getElementById('dzBadge');
+  const count = document.getElementById('dzCount');
+  const btn   = document.getElementById('processBtn');
+
+  if (selectedFiles.length === 0) {
+    qEl.style.display = 'none';
+    badge.style.display = 'none';
+    btn.disabled = true;
+    return;
+  }
+
+  badge.style.display = 'inline-flex';
+  count.textContent   = selectedFiles.length;
+  qEl.style.display   = 'block';
+  btn.disabled        = false;
+
+  qEl.innerHTML = selectedFiles.map((f, i) => {
+    const ext = f.name.split('.').pop().toLowerCase();
+    return `<div class="fq-item">
+      <span class="fq-name" title="${esc(f.name)}">${esc(f.name)}</span>
+      <span class="fq-type ${ext}">${ext.toUpperCase()}</span>
+      <span class="fq-rm" onclick="removeFile(${i})" title="Remove">✕</span>
+    </div>`;
+  }).join('');
+}
+
+// Drag events
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  handleFiles(e.dataTransfer.files);
+});
+
+// ═══════════════════════════════════════════════════
+//  PROCESS
+// ═══════════════════════════════════════════════════
+async function processAll() {
+  if (!selectedFiles.length) return;
+
+  setBusy(true);
+  setToast('Sending files to server…', 'info');
+  resetSteps();
+  document.getElementById('stepsBox').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('output').style.display = 'none';
+
+  setStep(1, 'active');
+
+  const form = new FormData();
+  selectedFiles.forEach(f => form.append('resumes', f));
+
+  try {
+    setStep(1, 'done'); setStep(2, 'active');
+    await delay(200);
+
+    const resp = await fetch(`${API}/api/anonymize`, { method: 'POST', body: form });
+    if (!resp.ok) throw new Error('Server error ' + resp.status);
+    const data = await resp.json();
+
+    setStep(2, 'done'); setStep(3, 'active'); await delay(200);
+    setStep(3, 'done'); setStep(4, 'active'); await delay(200);
+    setStep(4, 'done'); setStep(5, 'active'); await delay(200);
+
+    lastResults = data.results || [];
+    renderResults(lastResults, data.errors || []);
+    setStep(5, 'done');
+
+    const total = lastResults.length;
+    const errs  = (data.errors || []).length;
+    const redacted = lastResults.reduce((s, r) => s + (r.found?.length || 0), 0);
+    setToast(
+      `✅ ${total} file${total !== 1 ? 's' : ''} anonymized · ${redacted} contact item${redacted !== 1 ? 's' : ''} redacted${errs ? ` · ${errs} error${errs>1?'s':''}` : ''}`,
+      errs ? 'error' : 'success'
+    );
+
+    document.getElementById('output').style.display = 'block';
+    document.getElementById('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (err) {
+    setStep(1, 'error');
+    setToast('❌ ' + err.message, 'error');
+    console.error(err);
+  } finally {
+    setBusy(false);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER RESULTS
+// ═══════════════════════════════════════════════════
+function renderResults(results, errors) {
+  // Summary strip
+  const totalRedacted = results.reduce((s, r) => s + (r.found?.length || 0), 0);
+  document.getElementById('batchBadge').textContent = results.length + ' file' + (results.length !== 1 ? 's' : '');
+  document.getElementById('redactBadge').textContent = totalRedacted + ' redacted';
+
+  const grid = document.getElementById('summaryGrid');
+  const stats = [
+    { l: 'Processed',   v: results.length, cls: 'green' },
+    { l: 'Errors',      v: errors.length,  cls: errors.length ? 'red' : '' },
+    { l: 'Items Redacted', v: totalRedacted, cls: totalRedacted > 0 ? 'red' : 'green' },
+    { l: 'Emails',      v: results.reduce((s,r) => s + (r.found||[]).filter(f=>f.type==='email').length, 0), cls: '' },
+    { l: 'Phones',      v: results.reduce((s,r) => s + (r.found||[]).filter(f=>f.type==='phone').length, 0), cls: '' },
+    { l: 'Output Format', v: 'PDF', cls: 'gold' },
+  ];
+  grid.innerHTML = stats.map(s =>
+    `<div class="strip-cell"><div class="sc-label">${s.l}</div><div class="sc-val ${s.cls||''}">${s.v}</div></div>`
+  ).join('');
+
+  // All redacted items
+  const allFound = results.flatMap(r => r.found || []);
+  if (allFound.length > 0) {
+    const rl = document.getElementById('allRedactedList');
+    rl.style.display = 'block';
+    document.getElementById('allRedactedChips').innerHTML =
+      allFound.map(f => `<span class="rl-chip">${f.type}: ${esc(f.value)}</span>`).join('');
+  }
+
+  // Result cards
+  const container = document.getElementById('resultCards');
+  container.innerHTML = '';
+
+  results.forEach((r, i) => {
+    const card = document.createElement('div');
+    card.className = 'r-card';
+    const foundEmails = (r.found||[]).filter(f => f.type === 'email');
+    const foundPhones = (r.found||[]).filter(f => f.type === 'phone');
+
+    card.innerHTML = `
+      <div class="r-card-hdr">
+        <div class="r-card-left">
+          <div class="r-card-name">${esc(r.candidate_name || 'Unknown')}</div>
+          <div class="r-card-role">${esc(r.candidate_role || 'Role not detected')}</div>
+          <div class="r-card-file">→ ${esc(r.output_name)}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end;flex-shrink:0;">
+          <span class="strip-badge ${foundEmails.length ? 'sb-red' : 'sb-green'}">
+            📧 ${foundEmails.length} email${foundEmails.length!==1?'s':''}
+          </span>
+          <span class="strip-badge ${foundPhones.length ? 'sb-red' : 'sb-green'}">
+            📞 ${foundPhones.length} phone${foundPhones.length!==1?'s':''}
+          </span>
+        </div>
+      </div>
+      <div class="r-card-meta">
+        <div class="r-meta-item"><span class="ico">📄</span><span>Source: <span class="val">${esc(r.original_name)}</span></span></div>
+        <div class="r-meta-item"><span class="ico">🔒</span><span>Redacted: <span class="val ${(r.found||[]).length > 0 ? 'red' : 'green'}">${(r.found||[]).length} items</span></span></div>
+        <div class="r-meta-item"><span class="ico">🏷</span><span>Output: <span class="val">${esc(r.output_name)}</span></span></div>
+      </div>
+      <div class="r-card-body">
+        ${(r.found||[]).length > 0 ? `<div class="r-redacted-chips">
+          ${(r.found||[]).map(f => `<span class="r-chip">${f.type}: ${esc(f.value)}</span>`).join('')}
+        </div>` : '<p style="font-size:.78rem;color:var(--emerald);margin-bottom:12px;">✓ No contact data found to redact</p>'}
+        <div class="r-card-actions">
+          <button class="btn-dl" onclick="downloadFile(${i})">⬇ Download PDF</button>
+          <button class="btn-sec" onclick="previewFile(${i})">👁 Preview</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Error cards
+  errors.forEach(e => {
+    const card = document.createElement('div');
+    card.className = 'r-card error-card';
+    card.innerHTML = `
+      <div class="r-card-hdr">
+        <div class="r-card-left">
+          <div class="r-card-name">⚠ Processing Error</div>
+          <div class="r-card-file">${esc(e.file)}</div>
+        </div>
+      </div>
+      <div class="err-msg">${esc(e.error)}</div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Label
+  document.getElementById('resultsLabel').textContent =
+    `Results · ${results.length} anonymized` + (errors.length ? `, ${errors.length} failed` : '');
+
+  // Bulk download section
+  if (results.length > 0) {
+    const bulk = document.getElementById('bulkSection');
+    bulk.style.display = 'block';
+    document.getElementById('bulkDesc').textContent =
+      `${results.length} anonymized PDF${results.length !== 1 ? 's' : ''} ready`;
+    const btns = document.getElementById('bulkBtns');
+    btns.innerHTML = '';
+
+    if (results.length > 1) {
+      const zipBtn = document.createElement('button');
+      zipBtn.className = 'btn-dl';
+      zipBtn.innerHTML = '📦 Download ZIP';
+      zipBtn.onclick = downloadAllZip;
+      btns.appendChild(zipBtn);
+    }
+    const dlAllBtn = document.createElement('button');
+    dlAllBtn.className = 'btn-sec';
+    dlAllBtn.innerHTML = '⬇ Download All Individually';
+    dlAllBtn.onclick = downloadAllIndividual;
+    btns.appendChild(dlAllBtn);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  DOWNLOADS
+// ═══════════════════════════════════════════════════
+function downloadFile(idx) {
+  const r = lastResults[idx];
+  if (!r) return;
+  const bytes = base64ToBytes(r.pdf_b64);
+  triggerDownload(bytes, r.output_name, 'application/pdf');
+}
+
+function previewFile(idx) {
+  const r = lastResults[idx];
+  if (!r) return;
+  const bytes = base64ToBytes(r.pdf_b64);
+  const blob  = new Blob([bytes], { type: 'application/pdf' });
+  const url   = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+function downloadAllIndividual() {
+  lastResults.forEach((_, i) => setTimeout(() => downloadFile(i), i * 400));
+}
+
+function downloadAllZip() {
+  // Build ZIP client-side
+  import('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')
+    .catch(() => {
+      // fallback: download individually
+      downloadAllIndividual();
+    })
+    .then(module => {
+      // If dynamic import fails, fallback
+    });
+
+  // Simple approach: use JSZip from CDN
+  const script = document.createElement('script');
+  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+  script.onload = () => {
+    const zip = new JSZip();
+    lastResults.forEach(r => {
+      zip.file(r.output_name, r.pdf_b64, { base64: true });
+    });
+    zip.generateAsync({ type: 'blob' }).then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = 'anonymized_resumes.zip';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    });
+  };
+  script.onerror = downloadAllIndividual;
+  document.head.appendChild(script);
+}
+
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+
+function triggerDownload(bytes, filename, mime) {
+  const blob = new Blob([bytes], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// ═══════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════
+function setToast(msg, type) {
+  const el = document.getElementById('toast');
+  el.className = 'toast ' + type;
+  el.innerHTML = msg;
+}
+function setBusy(on) {
+  document.getElementById('processBtn').disabled = on;
+  document.getElementById('spin').style.display  = on ? 'block' : 'none';
+  document.getElementById('btnLabel').textContent = on ? 'Processing…' : '🚀 Anonymize All Resumes';
+}
+function setStep(n, state) {
+  const el = document.getElementById('st' + n);
+  el.className = 'step ' + state;
+  const num = el.querySelector('.step-num');
+  if (state === 'done')  num.textContent = '✓';
+  else if (state === 'error') num.textContent = '✕';
+  else num.textContent = n;
+}
+function resetSteps() {
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('st' + i);
+    el.className = 'step';
+    el.querySelector('.step-num').textContent = i;
+  }
+}
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+function esc(s)    { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+checkServer();
+</script>
+</body>
+</html>

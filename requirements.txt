@@ -1,0 +1,6 @@
+Flask
+Pillow
+pdfplumber
+pypdf
+reportlab
+python-docx
